@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1">
+		<title>BitEdu主页</title>
+
+		<script type="text/javascript" src="./js/util.js"></script>
+
+		<script type="text/javascript" src="./js/lib/jquery.js"></script>
+		<script type="text/javascript" src="./js/lib/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="./js/lib/jquery.fullPage.js"></script>
+
+		<script type="text/javascript">
+			var res = ['Base', 'Bar', 'Bar_v', 'Point', 'Polyline', 'Polyline_rank', 'Radar', 'Pie', 'Ring'];
+			var html = [];
+			for(s in res) {
+				html.push('<script type="text/javascript" src="./js/H5Component' + res[s] + '.js"><\/script>')
+				html.push('<link rel="stylesheet" href="./css/H5Component' + res[s] + '.css" />')
+			}
+			document.write(html.join(''));
+		</script>
+
+		<script type="text/javascript" src="./js/H5.js"></script>
+		<link rel="stylesheet" href="./css/H5.css" />
+
+		<style type="text/css">
+			body {
+				margin: 0;
+				padding: 0;
+			}
+			
+			.h5_page {
+				background-image: url(./img/page_bg.png);
+			}
+			
+			.h5_page_face {
+				background-image: url(./img/face_bg.png);
+			}
+			/* slogan抖动动画 */
+			
+			.h5_component_name_slogan {
+				-webkit-animation: rock 2s infinite 2s;
+			}
+			
+			@-webkit-keyframes rock {
+				0% {
+					transform: rotate(0deg)
+				}
+				5% {
+					transform: rotate(3deg)
+				}
+				10% {
+					transform: rotate(-4deg)
+				}
+				15% {
+					transform: rotate(3deg)
+				}
+				20% {
+					transform: rotate(-2deg)
+				}
+				25% {
+					transform: rotate(1deg)
+				}
+				30% {
+					transform: rotate(-1deg)
+				}
+				70% {
+					transform: rotate(0deg)
+				}
+				100% {
+					transform: rotate(0deg)
+				}
+			}
+			
+			.h5_component_name_caption {
+				background-image: url(./img/page_caption_bg.png);
+				width: 283px;
+				height: 160px;
+				text-align: center;
+				line-height: 140px;
+				font-size: 20px;
+				color: #fff;
+			}
+			
+			.h5_component_name_back {
+				top: 30px;
+				-webkit-animation: back 2s infinite 2s;
+			}
+			
+			@-webkit-keyframes back {
+				50% {
+					top: 20px;
+				}
+			}
+		</style>
+
+		<script type="text/javascript">
+
+			var init=function(){
+				// arr用于存放servlet返回的数据
+				var arr=new Array();
+				// 用于存放各科平均成绩
+				var avg=new Array();
+				// 用于存放各科平均排名
+				var avg_rank=new Array();
+				// 用于存放各科贡献
+				var contribute=new Array();
+				var total_contribute=0;
+				  
+        		//1.发出异步请求,得到xhr对象  
+        		var xhr=getXHR();  
+        		//2.注册状态变化监听器  
+        		xhr.onreadystatechange=function(){  
+            		if(xhr.readyState==4)  
+                	{  
+                		if(xhr.status==200)  
+                    	{   
+                    		arr=xhr.responseText.split(",");
+
+                    		//计算各科平均成绩
+                    		for(var i = 0;i < 9;i++){
+                    			avg[i] = ((parseFloat(arr[i+1]) + parseFloat(arr[i+11]) + parseFloat(arr[i+21])) / 3).toFixed(2);
+                    		}  
+
+                    		//计算各科平均排名
+                    		for(i = 0; i < 9; i++){
+                    			avg_rank[i] = parseInt(arr[i*3+30] + arr[i*3+31] + arr[i*3+32] / 3);
+                    		}
+
+                    		//计算最弱科目
+                    		var rank = [["语文",avg_rank[0]],["数学",avg_rank[1]],["英语",avg_rank[2]],["物理",avg_rank[3]],["化学",avg_rank[4]],["生物",avg_rank[5]],["历史",avg_rank[6]],["地理",avg_rank[7]],["政治",avg_rank[8]]];
+                    		var j,t;
+
+                    		for (j = 0; j < 9 - 1; j++)
+						        for (i = 0; i < 9 - 1 - j; i++)
+						        {
+						            if(rank[i][1]<rank[i+1][1]){
+                    				t=rank[i][1];
+                    				rank[i][1]=rank[i+1][1];
+                    				rank[i+1][1]=t;
+
+                    				t=rank[i][0];
+                    				rank[i][0]=rank[i+1][0];
+                    				rank[i+1][0]=t;
+                    			}
+						    }
+
+						    //计算各科贡献
+						    for(i = 0; i < 9; i++){
+						    	contribute[i]=(arr[i+1]-arr[57+i*3])+(arr[i+11]-arr[58+i*3])+(arr[i+21]-arr[59+i*3])/3+150;
+						    }
+						    for(i = 0; i < 9; i++){
+						    	total_contribute += contribute[i];
+						    }
+                    		
+                    	}  
+
+                    	$(function() {
+							var h5 = new H5();
+
+							h5.whenAddPage = function() {
+								this.addComponent('slide_up', {
+									bg: './img/foot.png',
+									css: {
+										opacity: 0,
+										left: 0,
+										bottom: -20,
+										width: '100%',
+										height: '20px',
+										zIndex: 999
+									},
+									animateIn: {
+										bottom: '-1px',
+										opacity: 1
+									},
+									animateOut: {
+										bottom: '-20px',
+										opacity: 0
+									},
+									delay: 500
+								});
+							}
+
+							h5
+								.addPage('face')
+								.addComponent('logo', {
+									center: true,
+									width: 442,
+									height: 145,
+									bg: './img/faceLogo.png',
+									css: {
+										opacity: 0
+									},
+									animateIn: {
+										top: 170,
+										opacity: 1
+									},
+									animateOut: {
+										top: 0,
+										opacity: 0
+									}
+								})
+								.addComponent('slogan', {
+									center: true,
+									width: 365,
+									height: 99,
+									bg: './img/faceSlogan.png',
+									css: {
+										opacity: 0,
+										top: 250
+									},
+									animateIn: {
+										left: '50%',
+										opacity: 1
+									},
+									animateOut: {
+										left: '0%',
+										opacity: 0
+									},
+									delay: 500
+								})
+								.addComponent('face_img_left', {
+									width: 370,
+									height: 493,
+									bg: './img/face_img_left.png',
+									css: {
+										opacity: 0,
+										left: -50,
+										bottom: -50
+									},
+									animateIn: {
+										left: 0,
+										bottom: 0,
+										opacity: 1
+									},
+									animateOut: {
+										left: -50,
+										bottom: -50,
+										opacity: 0
+									},
+									delay: 1000
+								})
+								.addComponent('face_img_right', {
+									width: 276,
+									height: 449,
+									bg: './img/face_img_right.png',
+									css: {
+										opacity: 0,
+										right: -50,
+										bottom: -50
+									},
+									animateIn: {
+										right: 0,
+										bottom: 0,
+										opacity: 1
+									},
+									animateOut: {
+										right: -50,
+										bottom: -50,
+										opacity: 0
+									},
+									delay: 1000
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '核心理念' })
+								.addComponent('text', {
+									width: 700,
+									height: 30,
+									center: true,
+									text: 'IT技术=让学习更轻松',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '30px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 140
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('description', {
+									width: 481,
+									height: 295,
+									center: true,
+									bg: './img/description_bg.gif',
+									css: {
+										opacity: 0,
+										padding: '15px 10px 10px 10px',
+										color: '#fff',
+										fontSize: '20px',
+										lineHeight: '24px',
+										textAlign: 'justify',
+										top: 240
+									},
+									text: '比特教育（BitEducation）是一个运用IT技术，可视化并分析学习数据，使学习变得更轻松、高效的应用。',
+									animateIn: {
+										opacity: 1,
+										top: 240
+									},
+									animateOut: {
+										opacity: 0,
+										top: 300
+									},
+									delay: 1000
+								})
+								.addComponent('people', {
+									center: true,
+									width: 515,
+									height: 305,
+									bg: './img/p1_people.png',
+									css: {
+										opacity: 0,
+										bottom: 0
+									},
+									animateIn: {
+										opacity: 1,
+										bottom: 40
+									},
+									animateOut: {
+										opacity: 0,
+										bottom: 0
+									},
+									delay: 500
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '语文' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[1]/150, arr[1]],
+										[arr[10], arr[11]/150, arr[11]],
+										[arr[20], arr[21]/150, arr[21]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[30]/848, arr[30]],
+										[arr[10], 1-arr[31]/848, arr[31]],
+										[arr[20], 1-arr[32]/848, arr[32]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '数学' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[2]/150, arr[2]],
+										[arr[10], arr[12]/150, arr[12]],
+										[arr[20], arr[22]/150, arr[22]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[33]/848, arr[33]],
+										[arr[10], 1-arr[34]/848, arr[34]],
+										[arr[20], 1-arr[35]/848, arr[35]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '英语' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[3]/150, arr[3]],
+										[arr[10], arr[13]/150, arr[13]],
+										[arr[20], arr[23]/150, arr[23]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[36]/848, arr[36]],
+										[arr[10], 1-arr[37]/848, arr[37]],
+										[arr[20], 1-arr[38]/848, arr[38]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '物理' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[4]/150, arr[4]],
+										[arr[10], arr[14]/150, arr[14]],
+										[arr[20], arr[24]/150, arr[24]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[39]/848, arr[39]],
+										[arr[10], 1-arr[40]/848, arr[40]],
+										[arr[20], 1-arr[41]/848, arr[41]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '化学' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[5]/150, arr[5]],
+										[arr[10], arr[15]/150, arr[15]],
+										[arr[20], arr[25]/150, arr[25]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[42]/848, arr[42]],
+										[arr[10], 1-arr[43]/848, arr[43]],
+										[arr[20], 1-arr[44]/848, arr[44]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '生物' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[6]/150, arr[6]],
+										[arr[10], arr[16]/150, arr[16]],
+										[arr[20], arr[26]/150, arr[26]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[45]/848, arr[45]],
+										[arr[10], 1-arr[46]/848, arr[46]],
+										[arr[20], 1-arr[47]/848, arr[47]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '历史' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[7]/150, arr[7]],
+										[arr[10], arr[17]/150, arr[17]],
+										[arr[20], arr[28]/150, arr[28]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[48]/848, arr[48]],
+										[arr[10], 1-arr[49]/848, arr[49]],
+										[arr[20], 1-arr[50]/848, arr[50]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '地理' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[8]/150, arr[8]],
+										[arr[10], arr[18]/150, arr[18]],
+										[arr[20], arr[28]/150, arr[28]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[51]/848, arr[51]],
+										[arr[10], 1-arr[52]/848, arr[52]],
+										[arr[20], 1-arr[53]/848, arr[53]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '政治' })
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试成绩',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 120
+									},
+									animateOut: {
+										opacity: 0,
+										top: 240
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], arr[5]/150, arr[5]],
+										[arr[10], arr[15]/150, arr[15]],
+										[arr[20], arr[25]/150, arr[25]]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 150
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+								.addComponent('text', {
+									width: 700,
+									height: 20,
+									center: true,
+									text: '考试排名',
+									css: {
+										opacity: 0,
+										textAlign: 'center',
+										color: 'red',
+										fontSize: '20px'
+									},
+									animateIn: {
+										opacity: 1,
+										top: 390
+									},
+									animateOut: {
+										opacity: 0,
+										top: 500
+									}
+								})
+								.addComponent('polyline', {
+									type: 'polyline',
+
+									width: 530,
+									height: 400,
+									data: [
+										[arr[0], 1-arr[54]/848, arr[54]],
+										[arr[10], 1-arr[55]/848, arr[55]],
+										[arr[20], 1-arr[56]/848, arr[56]]
+									],
+									css: {
+										top: 150,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 410
+									},
+									animateOut: {
+										opacity: 0,
+										top: 150
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '各科平均成绩' }) //bar
+								.addComponent('bar', {
+									type: 'bar',
+
+									width: 530,
+									height: 600,
+									data: [
+										['语文', avg[0]],
+										['数学', avg[1]],
+										['英语', avg[2]],
+										['物理', avg[3]],
+										['化学', avg[4]],
+										['生物', avg[5]],
+										['历史', avg[6]],
+										['地理', avg[7]],
+										['政治', avg[8]],
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 180,
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100,
+									},
+									center: true,
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '各科水平' }) //radar
+								.addComponent('radar', {
+									type: 'radar',
+
+									width: 400,
+									height: 400,
+									data: [
+										['语文', 1 - (avg_rank[0] / 848)],
+										['数学', 1 - (avg_rank[1] / 848)],
+										['英语', 1 - (avg_rank[2] / 848)],
+										['物理', 1 - (avg_rank[3] / 848)],
+										['化学', 1 - (avg_rank[4] / 848)],
+										['生物', 1 - (avg_rank[5] / 848)],
+										['历史', 1 - (avg_rank[6] / 848)],
+										['地理', 1 - (avg_rank[7] / 848)],
+										['政治', 1 - (avg_rank[8] / 848)]
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 200
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100
+									},
+									center: true
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '各科贡献' }) //pie
+								.addComponent('pie', {
+									type: 'pie',
+
+									width: 440,
+									height: 440,
+
+									data: [
+										['语文', (contribute[0]/total_contribute).toFixed(2), '#FF0033'],
+										['数学', (contribute[1]/total_contribute).toFixed(2), '#FF6600'],
+										['英语', (contribute[2]/total_contribute).toFixed(2), '#33FF00'],
+										['物理', (contribute[3]/total_contribute).toFixed(2), '#0033FF'],
+										['化学', (contribute[4]/total_contribute).toFixed(2), '#000033'],
+										['生物', (contribute[5]/total_contribute).toFixed(2), '#660099'],
+										['历史', (contribute[6]/total_contribute).toFixed(2), '#660000'],
+										['地理', (contribute[7]/total_contribute).toFixed(2), '#99FFCC'],
+										['政治', (contribute[8]/total_contribute).toFixed(2), '#CCFF00']
+									],
+									css: {
+										top: 100,
+										opacity: 0
+									},
+									animateIn: {
+										opacity: 1,
+										top: 240,
+									},
+									animateOut: {
+										opacity: 0,
+										top: 100,
+									},
+									center: true,
+								})
+
+								.addPage()
+								.addComponent('caption', { text: '最需要加强科目' }) //point
+								.addComponent('point', {
+									type: 'point',
+
+									width: 300,
+									height: 300,
+									data: [
+										[rank[0][0], .4, rank[0][1], '#ff7676'],
+										[rank[2][0], .2, rank[2][1], '#ffa3a4', 0, '-60%'],
+										[rank[1][0], .3, rank[1][1],'#99c1ff', '50%', '-120%']
+									],
+									css: {
+										top: 100,
+										opacity: 0,
+										bottom: '-20%'
+									},
+									animateIn: {
+										top: 350,
+										opacity: 1
+									},
+									animateOut: {
+										top: 100,
+										opacity: 0
+									},
+									center: true,
+								})
+
+								.addPage('tail')
+								.addComponent('logo', {
+									center: true,
+									width: 442,
+									height: 145,
+									bg: './img/tail_Logo.png',
+									css: {
+										top: 240,
+										opacity: 0
+									},
+									animateIn: {
+										top: 240,
+										opacity: 1
+									},
+									animateOut: {
+										top: 260,
+										opacity: 0
+									}
+								})
+								.addComponent('slogan', {
+									center: true,
+									width: 314,
+									height: 46,
+									bg: './img/tail_slogan.png',
+									css: {
+										top: 280,
+										opacity: 0
+									},
+									animateIn: {
+										top: '50%',
+										opacity: 1
+									},
+									animateOut: {
+										top: '0%',
+										opacity: 0
+									},
+									delay: 500
+								})
+								.addComponent('share', {
+									width: 100,
+									height: 100,
+									bg: './img/tail_share.png',
+									css: {
+										top: 110,
+										right: 110,
+										opacity: 0
+									},
+									animateIn: {
+										top: 10,
+										right: 10,
+										opacity: 1
+									},
+									animateOut: {
+										top: 110,
+										right: 110,
+										opacity: 0
+									},
+									delay: 1000
+								})
+								.addComponent('back', {
+									center: true,
+									width: 82,
+									height: 80,
+									bg: './img/tail_back.png',
+									onclick: function() {
+										$.fn.fullpage.moveTo(1);
+									}
+								})
+								.loader();
+						});
+                	}  
+        		}  
+        		//3.建立与服务器的连接  
+        		xhr.open("GET","AjaxServlet"+"?time="+new Date().getTime());  
+        		//4.向服务器发出请求  
+        		xhr.send();  
+				}
+
+			init();
+	
+		</script>
+
+	</head>
+
+	<body>
+
+	</body>
+
+</html>
